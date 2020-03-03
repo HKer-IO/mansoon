@@ -1,0 +1,19 @@
+{:paths ["src"]
+ :deps {org.clojure/clojure {:mvn/version "1.10.1"}
+        funcool/promesa {:mvn/version "5.1.0"}
+        jarohen/chime {:mvn/version "0.3.0-SNAPSHOT"}
+        http-kit {:mvn/version "2.4.0-alpha6"}
+        ; web
+        metosin/compojure-api {:mvn/version "2.0.0-alpha31"
+                               :exclusions [frankiesardo/linked]}
+        metosin/ring-swagger-ui {:mvn/version "3.24.3"}
+        ring/ring-defaults {:mvn/version "0.3.2"}
+        ring-cors {:mvn/version "0.1.13"}
+        metosin/muuntaja {:mvn/version "0.6.6"}
+        ; database
+        com.oath.halodb/halodb {:mvn/version "0.4.5"}
+        com.taoensso/nippy {:mvn/version "2.15.0-RC1"}
+        skyscraper {:mvn/version "0.3.0"}}
+ :mvn/repos {"yahoo" {:url "https://yahoo.bintray.com/maven"}}
+ :aliases {:nrepl {:extra-deps
+                   {nrepl/nrepl {:mvn/version "0.6.0"}}}}}
