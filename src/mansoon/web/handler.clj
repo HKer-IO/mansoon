@@ -1,14 +1,9 @@
-(ns mansoon.web
+(ns mansoon.web.handler
   (:require [mansoon.db :as db]
             [mansoon.api :as api]
             [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
-            [ring.middleware.defaults :as defaults]
-            [muuntaja.middleware :as mdw]
-            [ring.middleware.cors :as cors]
-            [org.httpkit.server :as http]
-            [schema.core :as s])
-  (:gen-class))
+            [schema.core :as s]))
 
 (s/defschema Gallery
              {:tags                         [s/Str]
@@ -77,27 +72,17 @@
                      {size :- s/Int 5}]
       :summary "Search on gallery's tags"
       (ok
-        (api/search db q (to-result-xf page size {:max-size 20
-                                                  :default-size 5}))))
+        (api/search db q (to-result-xf page size {:max-size 20}))))
     (GET "/tags" []
       :return TagSearchResult
       :query-params [{page :- s/Int 0}
                      {size :- s/Int 10}]
       :summary "Get all tags"
-      (ok
-          (-> (mem-get-tags db)
+      (ok (-> (mem-get-tags db)
               (to-result page size))))))
 
-
 (defn start [config]
-  (assoc config :http/server
-                (-> (app config)
-                    (mdw/wrap-format)
-                    (cors/wrap-cors :access-control-allow-origin [#".*"]
-                                    :access-control-allow-methods [:get])
-                    (defaults/wrap-defaults defaults/api-defaults)
-                    (http/run-server {:port 8080}))))
+  (assoc config :http/handler (app config)))
 
-(defn stop [{:http/keys [server] :as config}]
-  (.close server)
-  (dissoc config :http/server))
+(defn stop [config]
+  (dissoc config :http/handler))

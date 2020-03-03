@@ -33,8 +33,10 @@
        (iterator-seq (.newIterator db))))
 
 (defn start [config]
+  (prn ::start)
   (assoc config :db (open "tmp" {})))
 
 (defn stop [{:keys [db] :as config}]
+  (prn ::stop)
   (.close db)
   (dissoc config :db))

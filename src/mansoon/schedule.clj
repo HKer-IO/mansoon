@@ -9,6 +9,7 @@
 
 (defn start
   [{:keys [db] :as config}]
+  (prn ::start)
   (let [chimes (chime-ch (periodic-seq (Instant/now) (Duration/ofMinutes 1)))
         ch (go-loop []
              (when-let [msg (<! chimes)]
@@ -19,5 +20,7 @@
     (assoc config :schedule ch)))
 
 (defn stop
-  [com]
-  (a/close! com))
+  [{:keys [schedule] :as config}]
+  (prn ::stop)
+  (a/close! schedule)
+  (dissoc config :schedule))

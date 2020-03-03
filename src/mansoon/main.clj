@@ -1,20 +1,32 @@
 (ns mansoon.main
   (:require [mansoon.schedule :as schedule]
-            [mansoon.web :as web]
+            [mansoon.web.handler :as handler]
+            [mansoon.web.http :as http]
             [mansoon.db :as db])
   (:gen-class))
 
 (defn start []
+  (prn ::start)
   (-> (db/start {})
       (schedule/start)
-      (web/start)))
+      (handler/start)
+      (http/start)))
 
 (defn stop [system]
   (-> system
-      (web/stop)
+      (http/stop)
+      (handler/stop)
       (schedule/stop)
-      (db/stop)))
+      (db/stop))
+  (prn ::stop))
 
+(defn await-system
+  [system]
+  (.addShutdownHook (Runtime/getRuntime)
+                    (new Thread ^Runnable #(do (stop system)
+                                               (shutdown-agents))))
+  (.join (Thread/currentThread)))
 
 (defn -main [& args]
-  (start))
+  (-> (start)
+      (await-system)))
