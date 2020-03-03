@@ -42,7 +42,8 @@
       :spec "/swagger.json"
       :data {:info {:title "Collaction Extradition Gallery API"
                     :description "Collaction Extradition Gallery https://collaction.hk"
-                    :contact {:name "Albert Lai"}
+                    :contact {:name "Albert Lai"
+                              :url "https://github.com/HKer-IO/mansoon"}
                     :license {:name "Eclipse Public License"
                               :url "http://www.eclipse.org/legal/epl-v10.html"}}
              :consumes ["application/json"]
