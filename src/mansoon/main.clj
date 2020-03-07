@@ -9,8 +9,8 @@
 (defn start []
   (prn ::start)
   (-> (db/start {})
-      (schedule/start)
       (cache/start)
+      (schedule/start)
       (handler/start)
       (http/start)))
 
@@ -18,8 +18,8 @@
   (-> system
       (http/stop)
       (handler/stop)
-      (cache/stop)
       (schedule/stop)
+      (cache/stop)
       (db/stop))
   (prn ::stop))
 
