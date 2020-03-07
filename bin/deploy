@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Init Key
+mkdir -p ~/.ssh
+echo -e "${DEPLOY_KEY//_/\\n}" > ~/.ssh/id_rsa
+chmod og-rwx ~/.ssh/id_rsa
+ssh-keyscan -H $DEPLOY_TARGET_SSH >> ~/.ssh/known_hosts
+
+scp -r src root@$DEPLOY_TARGET_SSH:~/mansoon/
+scp -r deps.edn root@$DEPLOY_TARGET_SSH:~/mansoon/
+ssh root@DEPLOY_TARGET_SSH 'cd ~/mansoon && bin/stop && sleep 15 && bin/start'
