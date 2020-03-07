@@ -8,7 +8,8 @@
                 (let [app (-> handler
                               (cors/wrap-cors :access-control-allow-origin [#".*"]
                                               :access-control-allow-methods [:get]))]
-                  (server/run-server app {:port 8080}))))
+                  (server/run-server app {:port 8080
+                                          :thread 1}))))
 
 
 (defn stop [{:http/keys [server] :as config}]
