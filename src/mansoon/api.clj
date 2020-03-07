@@ -85,7 +85,7 @@
             (not (string/starts-with? k "idx-")))
           coll))
 
-(defn- index-vector [db tag-name]
+(defn index-vector [db tag-name]
   (reduce
     (fn [acc [k v]]
       (reduce (fn [acc2 t]
@@ -95,13 +95,14 @@
     {}
     (exclude-sys-keys (db/all db))))
 
-(defn- index-unqi [db]
-  (reduce
-    (fn [acc [k _]]
-      (conj acc k))
-    #{}
-    (exclude-sys-keys (db/all db))))
-
+(defn index-unqi [db]
+  (->> (reduce
+         (fn [acc [k _]]
+           (conj acc k))
+         #{}
+         (exclude-sys-keys (db/all db)))
+       (vec)
+       (sort #(compare (Integer/parseInt %2) (Integer/parseInt %1)))))
 
 (defn search [db text limit-xf]
   (let [xf (comp (filter (fn idx- [[k _]]
@@ -114,7 +115,7 @@
 
 
 (defn main [db]
-  (let [group-set (db/get db "idx-group-id")
+  (let [group-set (set (db/get db "idx-group-id"))
         new-group-set (get-all-gallery-groups group-set)]
     (do
       ; put all new records
@@ -134,7 +135,7 @@
       (db/put db "idx-tags" (index-vector db :tags)))))
 
 (defn get-tags [db]
-  (keys (db/get db "idx-tags")))
+  (vec (keys (db/get db "idx-tags"))))
 
 (defn get-gallery-by-tags [db tag]
   (get (db/get db "idx-tags") tag []))

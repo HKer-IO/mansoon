@@ -2,13 +2,15 @@
   (:require [mansoon.schedule :as schedule]
             [mansoon.web.handler :as handler]
             [mansoon.web.http :as http]
-            [mansoon.db :as db])
+            [mansoon.db :as db]
+            [mansoon.web.cache :as cache])
   (:gen-class))
 
 (defn start []
   (prn ::start)
   (-> (db/start {})
       (schedule/start)
+      (cache/start)
       (handler/start)
       (http/start)))
 
@@ -16,6 +18,7 @@
   (-> system
       (http/stop)
       (handler/stop)
+      (cache/stop)
       (schedule/stop)
       (db/stop))
   (prn ::stop))
