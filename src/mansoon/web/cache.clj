@@ -1,10 +1,19 @@
 (ns mansoon.web.cache
-  (:require [clojure.core.cache :as cache]))
+  (:require [clojure.core.cache :as cache]
+            [msync.lucene :as lucene]
+            [msync.lucene.analyzers :as analyzers]))
 
+(defn create-gallery-index []
+  (lucene/create-index! :type :disk
+                        :path "lucene-index/"
+                        :analyzer
+                        (analyzers/standard-analyzer)))
 
 (defn start [config]
   (prn ::start)
   (assoc config
+    :web.cache/lucene
+    (create-gallery-index)
     :web.cache/gallery
     (atom (cache/lru-cache-factory {:threshold 40000}))
     :web.cache/by-tag
@@ -20,4 +29,5 @@
           :web.cache/all-tags
           :web.cache/by-tag
           :web.cache/gallery
-          :web.cache/all-ids))
+          :web.cache/all-ids
+          :web.cache/lucene))

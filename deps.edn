@@ -12,6 +12,7 @@
         ring-cors {:mvn/version "0.1.13"}
         metosin/muuntaja {:mvn/version "0.6.6"}
         ; database
+        org.msync/lucene-clj {:mvn/version "0.2.0-SNAPSHOT"}
         com.oath.halodb/halodb {:mvn/version "0.4.5"}
         com.taoensso/nippy {:mvn/version "2.15.0-RC1"}}
  :mvn/repos {"yahoo" {:url "https://yahoo.bintray.com/maven"}}

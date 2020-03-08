@@ -4,7 +4,9 @@
             [clojure.core.cache :as cache]
             [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [msync.lucene :as lucene]
+            [msync.lucene.document :as ld]))
 
 (s/defschema Gallery
              {:tags                         [s/Str]
@@ -44,7 +46,7 @@
     (cache/lookup @cache k)))
 
 (defn app [{:keys [db]
-            :web.cache/keys [all-ids by-tag all-tags gallery]}]
+            :web.cache/keys [all-ids by-tag all-tags gallery lucene]}]
   (let [get-by-id (from-cache gallery (partial db/get db))]
     (api
       {:coercion :schema
@@ -100,7 +102,15 @@
                        {size :- s/Int 5}]
         :summary "Search on gallery's tags"
         (ok
-          (api/search db q (to-result-xf page size {:max-size 20}))))
+          (map :hit
+               (lucene/search lucene {:tags q}
+                              {:result-per-page size
+                               :page            page
+                               :hit->doc        #(-> %
+                                                     (ld/document->map :multi-fields [:gallery_id])
+                                                     :gallery_id
+                                                     first
+                                                     get-by-id)}))))
 
       (GET "/tags" []
         :return TagSearchResult
