@@ -15,8 +15,10 @@
         com.oath.halodb/halodb {:mvn/version "0.4.5"}
         com.taoensso/nippy {:mvn/version "2.15.0-RC1"}}
  :mvn/repos {"yahoo" {:url "https://yahoo.bintray.com/maven"}}
- :aliases {:nrepl {:extra-deps
-                   {nrepl/nrepl {:mvn/version "0.6.0"}}}
+ :aliases {:nrepl {:extra-paths ["dev/src" "dev/resources"]
+                   :extra-deps
+                   {nrepl/nrepl {:mvn/version "0.6.0"}
+                    org.clojure/tools.namespace {:mvn/version "1.0.0"}}}
            :depstar
                   {:extra-deps
                        {seancorfield/depstar {:mvn/version "0.5.2"}}}}}

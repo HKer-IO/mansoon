@@ -1,4 +1,4 @@
 #!/bin/bash
 
-clojure -R:nrepl -m nrepl.cmdline
+clojure -A:nrepl -m nrepl.cmdline
 

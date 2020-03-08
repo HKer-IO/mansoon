@@ -119,16 +119,18 @@
         new-group-set (get-all-gallery-groups group-set)]
     (do
       ; put all new records
-      (-> (map (fn [id]
-                 (if (nil? (db/get db id))
-                   (p/then' (get-gallery-info id)
-                            #(do
-                               (prn 'new id)
-                               (db/put db id %)))
-                   (p/resolved nil)))
-               new-group-set)
-          (p/all)
-          (deref))
+      (doseq [batch (partition-all 100 new-group-set)]
+        (prn 'batch (count batch))
+        (-> (map (fn [id]
+                   (if (nil? (db/get db id))
+                     (p/then' (get-gallery-info id)
+                              #(do
+                                 (prn 'new id)
+                                 (db/put db id %)))
+                     (p/resolved nil)))
+                 batch)
+            (p/all)
+            (deref)))
       ; update id idx
       (db/put db "idx-group-id" (index-unqi db))
       ; update tags idx
