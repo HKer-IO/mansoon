@@ -120,7 +120,6 @@
     (do
       ; put all new records
       (doseq [batch (partition-all 100 new-group-set)]
-        (prn 'batch (count batch))
         (-> (map (fn [id]
                    (if (nil? (db/get db id))
                      (p/then' (get-gallery-info id)
@@ -135,7 +134,7 @@
       (db/put db "idx-group-id" (index-unqi db))
       ; update tags idx
       (db/put db "idx-tags" (index-vector db :tags))
-      new-group-set)))
+      (set/difference new-group-set group-set))))
 
 (defn get-tags [db]
   (vec (keys (db/get db "idx-tags"))))
