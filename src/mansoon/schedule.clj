@@ -39,10 +39,8 @@
                    (swap! all-ids cache/seed {})
                    (swap! by-tag cache/seed {})
                    (swap! all-tags cache/seed {}))
-                 (lucene/index! lucene
-                                (into [] gallery->doc-xf (db/all db))
-                                {:stored-fields [:gallery_id]
-                                 :re-create? true})
+                 (lucene/index! @lucene (into [] gallery->doc-xf (db/all db))
+                                        {:stored-fields [:gallery_id]})
                  (catch Exception ex (prn ex)))
                (prn "End crawling at:" (Instant/now))
                (recur)))]

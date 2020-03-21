@@ -7,8 +7,7 @@
 
 (defn create-gallery-index
   []
-  (lucene/create-index! :type :disk
-                        :path "lucene-index/"
+  (lucene/create-index! :type :memory
                         :analyzer
                         (analyzers/standard-analyzer)))
 
@@ -18,7 +17,7 @@
   (prn ::start)
   (assoc config
          :web.cache/lucene
-         (create-gallery-index)
+         (atom (doto (create-gallery-index)))
          :web.cache/gallery
          (atom (cache/lru-cache-factory {:threshold 40000}))
          :web.cache/by-tag

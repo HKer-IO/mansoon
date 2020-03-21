@@ -116,7 +116,8 @@
                        :handler    (fn [{{{:keys [q page size] :or {page 0 size 20}} :query} :parameters}]
                                      (ok
                                        (map :hit
-                                            (lucene/search lucene {:tags q}
+                                            (lucene/search @lucene
+                                                           {:tags q}
                                                            {:result-per-page size
                                                             :page            page
                                                             :hit->doc        #(-> %
