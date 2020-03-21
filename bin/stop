@@ -2,4 +2,9 @@
 
 pid=`ps aux | grep 'mansoon.main' | grep -v grep | awk '//{print $2}'`
 
-kill -9 $pid
+if [ -z "$pid" ]
+then
+  echo 'no process'
+else
+  kill -9 $pid
+fi

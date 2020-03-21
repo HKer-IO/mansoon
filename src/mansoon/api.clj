@@ -1,13 +1,20 @@
 (ns mansoon.api
-  (:require [org.httpkit.client :as http]
-            [reaver :refer [parse extract-from text attr]]
-            [promesa.core :as p]
-            [jsonista.core :as json]
-            [clojure.set :as set]
-            [mansoon.db :as db]
-            [clojure.string :as string])
-  (:import (javax.net.ssl SSLEngine SSLParameters SNIHostName)
-           (java.net URI)))
+  (:require
+    [clojure.set :as set]
+    [clojure.string :as string]
+    [jsonista.core :as json]
+    [mansoon.db :as db]
+    [org.httpkit.client :as http]
+    [promesa.core :as p]
+    [reaver :refer [parse extract-from text attr]])
+  (:import
+    (java.net
+      URI)
+    (javax.net.ssl
+      SNIHostName
+      SSLEngine
+      SSLParameters)))
+
 
 (def api "https://www.collaction.hk/lab/")
 
@@ -17,6 +24,7 @@
 
 (def mapper (json/object-mapper {:decode-key-fn keyword}))
 
+
 (defn sni-configure
   [^SSLEngine ssl-engine ^URI uri]
   (let [^SSLParameters ssl-params (.getSSLParameters ssl-engine)]
@@ -24,14 +32,19 @@
     (.setUseClientMode ssl-engine true)
     (.setSSLParameters ssl-engine ssl-params)))
 
-(def client (http/make-client {:ssl-configurer sni-configure
-                               :max-connections 5}))
 
-(defn promise-callback [p]
+(def client
+  (http/make-client {:ssl-configurer sni-configure
+                     :max-connections 5}))
+
+
+(defn promise-callback
+  [p]
   (fn [response]
     (if (:error response)
       (p/reject! p (:error response))
       (p/resolve! p response))))
+
 
 (defn get-gallery-groups
   ([] (get-gallery-groups 0))
@@ -42,15 +55,18 @@
                       :client client}
                      (promise-callback p))]
      (-> p
-       (p/then' (fn [resp]
-                  (update resp :body json/read-value mapper)))
-       (p/then' #(-> % :body :data))))))
+         (p/then' (fn [resp]
+                    (update resp :body json/read-value mapper)))
+         (p/then' #(-> % :body :data))))))
 
-(defn get-gallery-group-id [snippet]
+
+(defn get-gallery-group-id
+  [snippet]
   (extract-from (parse snippet) ".gallery-card"
                 [:id :group-id]
                 ".gallery-card-image-wrapper" (attr :data-id)
                 ".gallery-card-image-wrapper" (attr :data-group-id)))
+
 
 (defn get-all-gallery-groups
   [gallery-set]
@@ -69,7 +85,9 @@
                (set/union new-set gset))
         gset))))
 
-(defn get-gallery-info [id]
+
+(defn get-gallery-info
+  [id]
   (let [p (p/deferred)
         _ (http/get gallery-endpoint
                     {:query-params {"id" id}
@@ -80,12 +98,16 @@
                    (update resp :body json/read-value mapper)))
         (p/then' #(get-in % [:body :data :gallery])))))
 
-(defn exclude-sys-keys [coll]
+
+(defn exclude-sys-keys
+  [coll]
   (filter (fn [[k _]]
             (not (string/starts-with? k "idx-")))
           coll))
 
-(defn index-vector [db tag-name]
+
+(defn index-vector
+  [db tag-name]
   (reduce
     (fn [acc [k v]]
       (reduce (fn [acc2 t]
@@ -95,7 +117,9 @@
     {}
     (exclude-sys-keys (db/all db))))
 
-(defn index-unqi [db]
+
+(defn index-unqi
+  [db]
   (->> (reduce
          (fn [acc [k _]]
            (conj acc k))
@@ -104,17 +128,22 @@
        (vec)
        (sort #(compare (Integer/parseInt %2) (Integer/parseInt %1)))))
 
-(defn search [db text limit-xf]
-  (let [xf (comp (filter (fn idx- [[k _]]
+
+(defn search
+  [db text limit-xf]
+  (let [xf (comp (filter (fn idx-
+                           [[k _]]
                            (not (string/starts-with? k "idx-"))))
-                 (filter (fn ac-search [[_ v]]
+                 (filter (fn ac-search
+                           [[_ v]]
                            (some #(string/includes? % text) (:tags v))))
                  (map second)
                  limit-xf)]
     (into [] xf (db/all db))))
 
 
-(defn main [db]
+(defn main
+  [db]
   (let [group-set (set (db/get db "idx-group-id"))
         new-group-set (get-all-gallery-groups group-set)]
     (do
@@ -136,8 +165,12 @@
       (db/put db "idx-tags" (index-vector db :tags))
       (set/difference new-group-set group-set))))
 
-(defn get-tags [db]
+
+(defn get-tags
+  [db]
   (vec (keys (db/get db "idx-tags"))))
 
-(defn get-gallery-by-tags [db tag]
+
+(defn get-gallery-by-tags
+  [db tag]
   (get (db/get db "idx-tags") tag []))

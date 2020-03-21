@@ -1,19 +1,27 @@
 (ns mansoon.schedule
-  (:require [mansoon.api :as api]
-            [chime :refer [chime-ch]]
-            [clojure.core.async :as a :refer [<! go-loop]]
-            [clojure.core.cache :as cache]
-            [msync.lucene :as lucene]
-            [mansoon.db :as db])
-  (:import (java.time Instant Duration)))
+  (:require
+    [chime :refer [chime-ch]]
+    [clojure.core.async :as a :refer [<! go-loop]]
+    [clojure.core.cache :as cache]
+    [mansoon.api :as api]
+    [mansoon.db :as db]
+    [msync.lucene :as lucene])
+  (:import
+    (java.time
+      Duration
+      Instant)))
 
-(defn periodic-seq [^Instant start duration-or-period]
+
+(defn periodic-seq
+  [^Instant start duration-or-period]
   (iterate #(.addTo duration-or-period %) start))
+
 
 (def gallery->doc-xf
   (comp (map second)
         (filter map?)
         (map #(dissoc % :images :facebook_url))))
+
 
 (defn start
   [{:keys [db]
@@ -39,6 +47,7 @@
                (prn "End crawling at:" (Instant/now))
                (recur)))]
     (assoc config :schedule [chimes ch])))
+
 
 (defn stop
   [{:keys [schedule] :as config}]

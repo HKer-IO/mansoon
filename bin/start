@@ -1,3 +1,5 @@
-#!/user/bin/env bash
+#!/bin/bash
 
-nohup clojure -m mansoon.main 2>&1 > nohup.log &
+nohup clojure -m mansoon.main > nohup.log 2>&1 &
+
+exit 0

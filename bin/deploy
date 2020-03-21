@@ -5,6 +5,7 @@ mkdir -p ~/.ssh
 echo -e "${DEPLOY_KEY}" > ~/.ssh/id_rsa
 chmod og-rwx ~/.ssh/id_rsa
 ssh-keyscan -H $DEPLOY_TARGET_SSH >> ~/.ssh/known_hosts
+ssh-add ~/.ssh/id_rsa
 
 # Deploy
 scp -r src root@$DEPLOY_TARGET_SSH:~/mansoon/

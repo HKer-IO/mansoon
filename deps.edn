@@ -5,8 +5,11 @@
         http-kit {:mvn/version "2.4.0-alpha6"}
         reaver {:mvn/version "0.1.3"}
         ; web
-        metosin/compojure-api {:mvn/version "2.0.0-alpha31"
-                               :exclusions [frankiesardo/linked]}
+        metosin/ring-http-response {:mvn/version "0.9.1"}
+        metosin/reitit-middleware {:mvn/version "0.4.2"}
+        metosin/reitit-schema {:mvn/version "0.4.2"}
+        metosin/reitit-swagger {:mvn/version "0.4.2"}
+        metosin/reitit-swagger-ui {:mvn/version "0.4.2"}
         metosin/ring-swagger-ui {:mvn/version "3.24.3"}
         ring/ring-defaults {:mvn/version "0.3.2"}
         ring-cors {:mvn/version "0.1.13"}
