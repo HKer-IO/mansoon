@@ -8,6 +8,5 @@ ssh-keyscan -H $DEPLOY_TARGET_SSH >> ~/.ssh/known_hosts
 ssh-add ~/.ssh/id_rsa
 
 # Deploy
-scp -r src root@$DEPLOY_TARGET_SSH:~/mansoon/
-scp -r deps.edn root@$DEPLOY_TARGET_SSH:~/mansoon/
+scp -r * root@$DEPLOY_TARGET_SSH:~/mansoon/
 ssh root@$DEPLOY_TARGET_SSH 'cd ~/mansoon && bin/stop && sleep 15 && bin/start && exit 0'
