@@ -81,7 +81,7 @@
                           :handler
                           (fn [{{{:keys [tag]} :path
                                  {:keys [page size] :or {page 0 size 20}} :query} :parameters}]
-                            (let [_ (swap! by-tag cache/through-cache tag (partial api/get-gallery-by-tags db))
+                            (let [_ (swap! by-tag cache/through-cache tag (partial db/get-gallery-by-tags db))
                                   galleries (cache/lookup @by-tag tag)
                                   xf (comp (to-result-xf page size {:max-size 20})
                                            (map get-by-id))]
@@ -95,7 +95,7 @@
                         :responses {200 {:body GallerySearchResult}}
                         :handler
                         (fn [{{{:keys [page size] :or {page 0 size 20}} :query} :parameters}]
-                          (let [_ (swap! all-ids cache/through-cache "idx-group-id" (partial db/get db))
+                          (let [_ (swap! all-ids cache/through-cache "idx-group-id" (fn [_] (db/get-all-group-ids db)))
                                 ids (cache/lookup @all-ids "idx-group-id")
                                 xf (comp (to-result-xf page size {:max-size 20})
                                          (map get-by-id))]
@@ -107,24 +107,6 @@
                      :responses  {200 {:body Gallery}}
                      :handler    (fn [{{{:keys [id]} :path} :parameters :as req}]
                                    (ok (get-by-id id)))}}]]
-     ["/search" {:get {:summary    "Search on gallery's tags"
-                       :coercion   reitit.coercion.schema/coercion
-                       :parameters {:query {:q                     s/Str
-                                            (s/optional-key :page) s/Int
-                                            (s/optional-key :size) s/Int}}
-                       :responses  {200 {:body [Gallery]}}
-                       :handler    (fn [{{{:keys [q page size] :or {page 0 size 20}} :query} :parameters}]
-                                     (ok
-                                       (map :hit
-                                            (lucene/search @lucene
-                                                           {:tags q}
-                                                           {:result-per-page size
-                                                            :page            page
-                                                            :hit->doc        #(-> %
-                                                                                  (ld/document->map :multi-fields [:gallery_id])
-                                                                                  :gallery_id
-                                                                                  first
-                                                                                  get-by-id)}))))}}]
      ["/tags" {:get {:summary "Get all tags"
                      :coercion   reitit.coercion.schema/coercion
                      :parameters {:query {(s/optional-key :page) s/Int
@@ -132,7 +114,7 @@
                      :responses  {200 {:body TagSearchResult}}
                      :handler (fn [{{{:keys [page size] :or {page 0 size 20}} :query} :parameters}]
                                 (do
-                                  (swap! all-tags cache/through-cache :all (fn [_] (api/get-tags db)))
+                                  (swap! all-tags cache/through-cache :all (fn [_] (db/get-tags db)))
                                   (ok (-> (cache/lookup @all-tags :all)
                                           (to-result page size)))))}}]
      ["" {:no-doc true}

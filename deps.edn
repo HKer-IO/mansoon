@@ -1,4 +1,4 @@
-{:paths ["src"]
+{:paths ["src" "dev/src" "dev/resources"]
  :deps {org.clojure/clojure {:mvn/version "1.10.1"}
         funcool/promesa {:mvn/version "5.1.0"}
         jarohen/chime {:mvn/version "0.3.0-SNAPSHOT"}
@@ -17,6 +17,8 @@
         ; database
         org.msync/lucene-clj {:mvn/version "0.2.0-SNAPSHOT"}
         com.oath.halodb/halodb {:mvn/version "0.4.5"}
+        com.h2database/h2 {:mvn/version "1.4.200"}
+        seancorfield/next.jdbc {:mvn/version "1.0.445"}
         com.taoensso/nippy {:mvn/version "2.15.0-RC1"}}
  :mvn/repos {"yahoo" {:url "https://yahoo.bintray.com/maven"}}
  :aliases {:nrepl {:extra-paths ["dev/src" "dev/resources"]

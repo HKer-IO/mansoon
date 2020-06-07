@@ -13,7 +13,7 @@
   (prn ::start)
   (-> (db/start {})
       (cache/start)
-      (schedule/start)
+     #_(schedule/start)
       (handler/start)
       (http/start)))
 
@@ -23,7 +23,7 @@
   (-> system
       (http/stop)
       (handler/stop)
-      (schedule/stop)
+      #_(schedule/stop)
       (cache/stop)
       (db/stop))
   (prn ::stop))

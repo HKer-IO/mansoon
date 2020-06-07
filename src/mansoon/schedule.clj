@@ -17,12 +17,6 @@
   (iterate #(.addTo duration-or-period %) start))
 
 
-(def gallery->doc-xf
-  (comp (map second)
-        (filter map?)
-        (map #(dissoc % :images :facebook_url))))
-
-
 (defn start
   [{:keys [db]
     :web.cache/keys [all-ids by-tag all-tags lucene]
@@ -34,13 +28,7 @@
              (when-let [msg (<! chimes)]
                (prn "Start crawling at:" msg)
                (try
-                 (when (> (count (api/main db)) 0)
-                   ; evict cache
-                   (swap! all-ids cache/seed {})
-                   (swap! by-tag cache/seed {})
-                   (swap! all-tags cache/seed {}))
-                 (lucene/index! @lucene (into [] gallery->doc-xf (db/all db))
-                                        {:stored-fields [:gallery_id]})
+                 (api/main db)
                  (catch Exception ex (prn ex)))
                (prn "End crawling at:" (Instant/now))
                (recur)))]

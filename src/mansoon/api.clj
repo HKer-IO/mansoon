@@ -45,19 +45,26 @@
       (p/reject! p (:error response))
       (p/resolve! p response))))
 
+(defn promise-request [params]
+  (let [p (p/deferred)
+        _ (http/request params (promise-callback p))]
+    p))
+
+
+(defn get-gallery-groups-request
+  ([offset] {:url list-endpoint
+             :query-params {"offset" offset}
+             :client client}))
+
 
 (defn get-gallery-groups
   ([] (get-gallery-groups 0))
   ([offset]
-   (let [p (p/deferred)
-         _ (http/get list-endpoint
-                     {:query-params {"offset" offset}
-                      :client client}
-                     (promise-callback p))]
-     (-> p
-         (p/then' (fn [resp]
-                    (update resp :body json/read-value mapper)))
-         (p/then' #(-> % :body :data))))))
+   (-> (get-gallery-groups-request offset)
+       (promise-request)
+       (p/then' (fn [resp]
+                  (update resp :body json/read-value mapper)))
+       (p/then' #(-> % :body :data)))))
 
 
 (defn get-gallery-group-id
@@ -74,103 +81,57 @@
          gset gallery-set]
     (let [groups @(get-gallery-groups offset)
           new-set (->> (:html groups)
-                       (map get-gallery-group-id)
-                       (map first)
+                       (mapcat get-gallery-group-id)
                        (map :group-id)
                        (set))
           more? (:hasMore groups)
           new-items (set/difference new-set gset)]
+      (prn 'group-ids new-items)
       (if (and more? (seq new-items))
         (recur (+ offset 20)
                (set/union new-set gset))
         gset))))
 
 
+(defn get-gallery-info-request [id]
+  {:url gallery-endpoint
+   :query-params {"id" id}
+   :client client})
+
+
 (defn get-gallery-info
   [id]
-  (let [p (p/deferred)
-        _ (http/get gallery-endpoint
-                    {:query-params {"id" id}
-                     :client client}
-                    (promise-callback p))]
-    (-> p
-        (p/then' (fn [resp]
-                   (update resp :body json/read-value mapper)))
-        (p/then' #(get-in % [:body :data :gallery])))))
-
-
-(defn exclude-sys-keys
-  [coll]
-  (filter (fn [[k _]]
-            (not (string/starts-with? k "idx-")))
-          coll))
-
-
-(defn index-vector
-  [db tag-name]
-  (reduce
-    (fn [acc [k v]]
-      (reduce (fn [acc2 t]
-                (update acc2 t conj k))
-              acc
-              (tag-name v)))
-    {}
-    (exclude-sys-keys (db/all db))))
-
-
-(defn index-unqi
-  [db]
-  (->> (reduce
-         (fn [acc [k _]]
-           (conj acc k))
-         #{}
-         (exclude-sys-keys (db/all db)))
-       (vec)
-       (sort #(compare (Integer/parseInt %2) (Integer/parseInt %1)))))
-
+  (-> (get-gallery-info-request id)
+      (promise-request)
+      (p/then' (fn [resp]
+                 (update resp :body json/read-value mapper)))
+      (p/then' #(get-in % [:body :data :gallery]))))
 
 (defn search
-  [db text limit-xf]
-  (let [xf (comp (filter (fn idx-
-                           [[k _]]
-                           (not (string/starts-with? k "idx-"))))
-                 (filter (fn ac-search
-                           [[_ v]]
-                           (some #(string/includes? % text) (:tags v))))
-                 (map second)
-                 limit-xf)]
-    (into [] xf (db/all db))))
+  [db text limit-xf])
 
 
 (defn main
   [db]
-  (let [group-set (set (db/get db "idx-group-id"))
+  (let [group-set (set (db/get-all-group-ids db))
         new-group-set (get-all-gallery-groups group-set)]
-    (do
-      ; put all new records
-      (doseq [batch (partition-all 100 new-group-set)]
-        (-> (map (fn [id]
-                   (if (nil? (db/get db id))
-                     (p/then' (get-gallery-info id)
-                              #(do
-                                 (prn 'new id)
-                                 (db/put db id %)))
-                     (p/resolved nil)))
-                 batch)
-            (p/all)
-            (deref)))
-      ; update id idx
-      (db/put db "idx-group-id" (index-unqi db))
-      ; update tags idx
-      (db/put db "idx-tags" (index-vector db :tags))
-      (set/difference new-group-set group-set))))
+    (doseq [batch (partition-all 10 new-group-set)]
+      (-> (map (fn [id]
+                 (prn id)
+                 (if (nil? (db/exists? db id))
+                   (p/then' (get-gallery-info id)
+                            #(db/put db %))
+                   (p/resolved nil)))
+               batch)
+          (p/all)
+          (deref)))))
 
 
 (defn get-tags
   [db]
-  (vec (keys (db/get db "idx-tags"))))
+  [])
 
 
 (defn get-gallery-by-tags
   [db tag]
-  (get (db/get db "idx-tags") tag []))
+  [])
